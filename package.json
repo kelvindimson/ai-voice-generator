@@ -7,13 +7,22 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest --watchAll=false"
+    "test": "jest --watchAll=false",
+    "db-gen": "drizzle-kit generate",
+    "db-gen-name": "npx drizzle-kit generate --name",
+    "db-migrate": "node -r esbuild-register ./db/migrate.ts",
+    "db-drop": "drizzle-kit drop --out=./db/migrations"
   },
   "dependencies": {
+    "@auth/drizzle-adapter": "^1.10.0",
     "@hookform/resolvers": "^5.2.1",
     "clsx": "^2.1.1",
+    "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.4",
     "lucide-react": "^0.537.0",
     "next": "15.4.6",
+    "next-auth": "^5.0.0-beta.29",
+    "postgres": "^3.4.7",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.62.0",
@@ -31,11 +40,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.4",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "jest": "^30.0.5",
     "tailwindcss": "^4",
     "ts-jest": "^29.4.1",
+    "tsx": "^4.20.4",
     "typescript": "^5"
   }
 }

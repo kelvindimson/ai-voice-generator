@@ -38,7 +38,8 @@ export const audioFileSchema = z.object({
  duration: z.number().optional(),
  fileSize: z.number().optional(),
  createdAt: z.date(),
- updatedAt: z.date(),
+ updatedAt: z.date().optional(),
+ deletedAt: z.date().optional()
 });
 
 export type Voice = z.infer<typeof voiceSchema>;
