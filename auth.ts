@@ -1,25 +1,26 @@
-// auth.ts (updated - remove authorized callback)
+// auth.ts (simplified without middleware auth)
 import NextAuth from "next-auth"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { dbConnection } from "./db"
 import Google from "next-auth/providers/google"
 import { accounts, sessions, users, verificationTokens } from "./db/schema"
 
-const adapter = DrizzleAdapter(dbConnection, {
-  usersTable: users,
-  accountsTable: accounts,
-  sessionsTable: sessions,
-  verificationTokensTable: verificationTokens,
-})
-
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter,
+  adapter: DrizzleAdapter(dbConnection, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens,
+  }),
   session: {
     strategy: "database",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   providers: [
-    Google({}),
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID!,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+    }),
   ],
   callbacks: {
     async session({ session, user }) {
@@ -34,4 +35,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     error: "/login",
   },
   secret: process.env.AUTH_SECRET!,
+//   debug: process.env.NODE_ENV === "development",
 })

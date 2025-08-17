@@ -19,7 +19,7 @@ import {
  AlertDialogHeader,
  AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import toast, { Toaster } from "react-hot-toast"
+import toast from "react-hot-toast"
 
 export default function LoginPage() {
  const { data: session, status } = useSession()
@@ -29,12 +29,13 @@ export default function LoginPage() {
    setShowSignOutDialog(false)
    await signOut({ redirect: false })
    toast.success("Signed out successfully!", {
-     duration: 3000,
-     position: "top-center",
-     style: {
-       background: "#10b981",
-       color: "#fff",
-     },
+    id: "signout-success",
+    //  duration: 3000,
+    //  position: "top-center",
+    //  style: {
+    //    background: "#10b981",
+    //    color: "#fff",
+    //  },
    })
  }
 
@@ -48,9 +49,8 @@ export default function LoginPage() {
 
  return (
    <>
-     <Toaster />
      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
-       <Card className="w-full max-w-md">
+       <Card className="w-full max-w-md shadow-none p-12">
          {!session ? (
            <>
              {/* Logged Out View */}
@@ -78,7 +78,7 @@ export default function LoginPage() {
                <Button
                  onClick={() => signIn("google")}
                  variant="outline"
-                 className="w-full"
+                 className="w-full py-6 rounded-full shadow-none"
                  size="lg"
                >
                  <FcGoogle className="mr-2 h-5 w-5" />
