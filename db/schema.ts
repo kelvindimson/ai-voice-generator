@@ -1,4 +1,4 @@
-import { boolean, timestamp, pgTable, text, primaryKey, integer } from "drizzle-orm/pg-core"
+import { boolean, timestamp, pgTable, text, primaryKey, integer, numeric } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "@auth/core/adapters"
 
 const createdAtTimestamp = timestamp("created_at", {withTimezone: true}).defaultNow().notNull();
@@ -93,3 +93,35 @@ export const userRoles = pgTable("user_role", {
 }, (table) => ([
     primaryKey({ columns: [table.userId, table.roleId] }),
 ]));
+
+export const categories = pgTable("category", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdAt: createdAtTimestamp,
+  updatedAt: updatedAtTimestamp,
+});
+
+// Audio Files table
+export const audioFiles = pgTable("audio_file", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  categoryId: text("category_id").references(() => categories.id, { onDelete: "set null" }),
+  
+  // File info
+  name: text("name").notNull(),
+  fileUrl: text("file_url").notNull(), // Supabase storage URL
+  fileKey: text("file_key").notNull(), // Storage path/key
+  fileSize: integer("file_size"), // in bytes
+  duration: numeric("duration", { precision: 10, scale: 2 }), // in seconds
+  
+  // Generation parameters
+  inputScript: text("input_script").notNull(), // The text to be spoken
+  voice: text("voice").notNull(), // Voice model used
+  promptInstructions: text("prompt_instructions"), // The prompt/instructions
+  
+  createdAt: createdAtTimestamp,
+  updatedAt: updatedAtTimestamp,
+  deletedAt: deletedAtTimestamp,
+});

@@ -12,20 +12,42 @@ export const voiceSchema = z.enum([
  "verse",
 ]);
 
-// Form fields for generation
 export const voiceGenerationSchema = z.object({
- input: z.string().min(1).max(5000),
- voice: voiceSchema,
- instructions: z.string().optional(),
- 
- // Granular controls
- emotion: z.string().optional(), // calm, excited, sympathetic, dramatic
- tone: z.string().optional(), // professional, friendly, authoritative
- pacing: z.enum(['slow', 'moderate', 'fast']).optional(),
- energy: z.enum(['low', 'medium', 'high']).optional(),
- accent: z.string().optional(), // British, French, neutral, etc.
- emphasis: z.string().optional(), // Words to emphasize
- pauseStrategy: z.enum(['natural', 'dramatic', 'minimal']).optional(),
+  // Core required fields
+  inputScript: z.string().min(1).max(5000), // The text to be spoken
+  voice: voiceSchema,
+  
+  // Most common instruction components from LIBRARY
+  voiceAffect: z.string().optional(), // "calm and composed", "deep and commanding", "energetic"
+  tone: z.string().optional(), // "sincere", "professional", "friendly", "mysterious"
+  emotion: z.string().optional(), // "empathy", "excitement", "calm reassurance"
+  pacing: z.string().optional(), // "slow and deliberate", "steady", "rapid", "moderate"
+  
+  // Secondary common fields
+  pronunciation: z.string().optional(), // Special pronunciation instructions
+  pauses: z.string().optional(), // Where and how to pause
+  personality: z.string().optional(), // "cheerful guide", "noir detective", "exuberant chef"
+  delivery: z.string().optional(), // "monotone", "dynamic", "theatrical"
+  
+  // Full custom instructions (if user wants to override granular controls)
+  customInstructions: z.string().max(2000).optional(),
+});
+
+// For preset generation based on LIBRARY examples
+export const presetSchema = z.enum([
+  'calm', 'dramatic', 'fitness-instructor', 'sincere', 'sympathetic',
+  'serene', 'sports-coach', 'medieval-knight', 'patient-teacher',
+  'connoisseur', 'emo-teenager', 'santa', 'bedtime-story', 'robot',
+  'friendly', 'gourmet-chef', 'old-timey', 'smooth-jazz-dj', 'auctioneer',
+  'mad-scientist', 'true-crime-buff', 'professional', 'cowboy',
+  'chill-surfer', 'pirate', 'nyc-cabbie', 'cheerleader', 'noir-detective',
+  'eternal-optimist'
+]);
+
+// When generating from preset
+export const generateFromPresetSchema = z.object({
+  preset: presetSchema,
+  customInput: z.string().optional(), // Override the default input text
 });
 
 // Audio file record schema
