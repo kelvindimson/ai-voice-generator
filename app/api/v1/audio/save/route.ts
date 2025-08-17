@@ -7,102 +7,115 @@ import { DateTime } from "luxon";
 import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
+ process.env.NEXT_PUBLIC_SUPABASE_URL!,
+ process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function POST(req: NextRequest) {
-  // Check authentication
-  const session = await auth();
-  if (!session?.user?.id) {
-    return NextResponse.json(
-      { 
-        message: "Unauthorized access",
-        status: statusCodes.UNAUTHORIZED,
-        success: false
-      },
-      { status: statusCodes.UNAUTHORIZED }
-    );
-  }
+ // Check authentication
+ const session = await auth();
+ if (!session?.user?.id) {
+   return NextResponse.json(
+     { 
+       message: "Unauthorized access",
+       status: statusCodes.UNAUTHORIZED,
+       success: false
+     },
+     { status: statusCodes.UNAUTHORIZED }
+   );
+ }
 
-  try {
-    const formData = await req.formData();
-    
-    // Get the audio file and metadata
-    const audioFile = formData.get("audio") as File;
-    const name = formData.get("name") as string;
-    const categoryId = formData.get("categoryId") as string | null;
-    const inputScript = formData.get("inputScript") as string;
-    const voice = formData.get("voice") as string;
-    const promptInstructions = formData.get("promptInstructions") as string;
-    const duration = formData.get("duration") as string | null;
+ try {
+   const formData = await req.formData();
+   
+   // Get the audio file and metadata
+   const audioFile = formData.get("audio") as File;
+   const name = formData.get("name") as string;
+   const categoryId = formData.get("categoryId") as string | null;
+   const inputScript = formData.get("inputScript") as string;
+   const voice = formData.get("voice") as string;
+   const promptInstructions = formData.get("promptInstructions") as string;
+   const duration = formData.get("duration") as string | null;
 
-    if (!audioFile || !name || !inputScript || !voice) {
-      return NextResponse.json({
-        message: "Missing required fields",
-        status: statusCodes.BAD_REQUEST,
-        success: false
-      }, { status: statusCodes.BAD_REQUEST });
-    }
+   if (!audioFile || !name || !inputScript || !voice) {
+     return NextResponse.json({
+       message: "Missing required fields",
+       status: statusCodes.BAD_REQUEST,
+       success: false
+     }, { status: statusCodes.BAD_REQUEST });
+   }
 
-    // Generate unique file key
-    const timestamp = DateTime.now().toUTC().toMillis();
-    const fileKey = `${session.user.id}/${timestamp}-${name.replace(/\s+/g, '-')}.mp3`;
+   // Get the actual file type
+   const fileType = audioFile.type;
+   const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav'];
+   
+   if (!allowedTypes.includes(fileType)) {
+     return NextResponse.json({
+       message: "Invalid file type. Only MP3 and WAV files are allowed",
+       status: statusCodes.BAD_REQUEST,
+       success: false
+     }, { status: statusCodes.BAD_REQUEST });
+   }
 
-    // Upload to Supabase Storage
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('audio-files')
-      .upload(fileKey, audioFile, {
-        contentType: 'audio/mpeg',
-        upsert: false
-      });
+   // Generate unique file key with correct extension
+   const timestamp = DateTime.now().toUTC().toMillis();
+   const extension = fileType === 'audio/wav' ? 'wav' : 'mp3';
+   const fileKey = `${session.user.id}/${timestamp}-${name.replace(/\s+/g, '-')}.${extension}`;
 
-    if (uploadError) {
-      console.error("Upload error:", uploadError);
-      return NextResponse.json({
-        message: "Failed to upload audio file",
-        status: statusCodes.INTERNAL_SERVER_ERROR,
-        success: false,
-        error: uploadError.message
-      }, { status: statusCodes.INTERNAL_SERVER_ERROR });
-    }
+   // Upload to Supabase Storage
+   const { error: uploadError } = await supabase.storage
+     .from('audio-files')
+     .upload(fileKey, audioFile, {
+       contentType: fileType,
+       upsert: false
+     });
 
-    // Get public URL
-    const { data: { publicUrl } } = supabase.storage
-      .from('audio-files')
-      .getPublicUrl(fileKey);
+   if (uploadError) {
+     console.error("Upload error:", uploadError);
+     return NextResponse.json({
+       message: "Failed to upload audio file",
+       status: statusCodes.INTERNAL_SERVER_ERROR,
+       success: false,
+       error: uploadError.message
+     }, { status: statusCodes.INTERNAL_SERVER_ERROR });
+   }
 
-    // Save to database
-    const [newAudioFile] = await dbConnection
-      .insert(audioFiles)
-      .values({
-        userId: session.user.id,
-        categoryId: categoryId || null,
-        name,
-        fileUrl: publicUrl,
-        fileKey,
-        fileSize: audioFile.size,
-        duration: duration ? duration.toString() : null,
-        inputScript,
-        voice,
-        promptInstructions: promptInstructions || null,
-      })
-      .returning();
+   // Get public URL
+   const { data: { publicUrl } } = supabase.storage
+     .from('audio-files')
+     .getPublicUrl(fileKey);
 
-    return NextResponse.json({
-      message: "Audio file saved successfully",
-      status: statusCodes.OK,
-      success: true,
-      data: newAudioFile
-    }, { status: statusCodes.OK });
+   // Save to database
+   const [newAudioFile] = await dbConnection
+     .insert(audioFiles)
+     .values({
+       userId: session.user.id,
+       categoryId: categoryId || null,
+       name,
+       fileUrl: publicUrl,
+       fileKey,
+       fileSize: audioFile.size,
+       duration: duration ? String(duration) : null,
+       inputScript,
+       voice,
+       promptInstructions: promptInstructions || null,
+     })
+     .returning();
 
-  } catch (error) {
-    console.error("Error saving audio:", error);
-    return NextResponse.json({
-      message: "Internal server error",
-      status: statusCodes.INTERNAL_SERVER_ERROR,
-      success: false,
-      error: error instanceof Error ? error.message : "Unknown error"
-    }, { status: statusCodes.INTERNAL_SERVER_ERROR });
-  }
+   return NextResponse.json({
+     message: "Audio file saved successfully",
+     status: statusCodes.OK,
+     success: true,
+     data: newAudioFile
+   }, { status: statusCodes.OK });
+
+ } catch (error) {
+   console.error("Error saving audio:", error);
+   return NextResponse.json({
+     message: "Internal server error",
+     status: statusCodes.INTERNAL_SERVER_ERROR,
+     success: false,
+     error: error instanceof Error ? error.message : "Unknown error"
+   }, { status: statusCodes.INTERNAL_SERVER_ERROR });
+ }
 }
