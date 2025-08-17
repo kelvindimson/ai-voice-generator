@@ -1,5 +1,9 @@
 import { boolean, timestamp, pgTable, text, primaryKey, integer } from "drizzle-orm/pg-core"
 import type { AdapterAccountType } from "@auth/core/adapters"
+
+const createdAtTimestamp = timestamp("created_at", {withTimezone: true}).defaultNow().notNull();
+const updatedAtTimestamp = timestamp("updated_at", {withTimezone: true});
+const deletedAtTimestamp = timestamp("deleted_at", {withTimezone: true});
  
 export const users = pgTable("user", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -69,3 +73,23 @@ export const authenticators = pgTable("authenticator",{
     },
   ]
 )
+
+export const roles = pgTable("role", {
+    id: text("id").primaryKey(),
+    name: text("name").notNull().unique(),
+    description: text("description"),
+    isSystem: boolean("is_system").default(false), // To mark default system roles
+    createdAt: createdAtTimestamp,
+    updatedAt: updatedAtTimestamp,
+    deletedAt: deletedAtTimestamp,
+});
+
+export const userRoles = pgTable("user_role", {
+    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    roleId: text("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
+    createdAt: createdAtTimestamp,
+    updatedAt: updatedAtTimestamp,
+    deletedAt: deletedAtTimestamp,
+}, (table) => ([
+    primaryKey({ columns: [table.userId, table.roleId] }),
+]));
