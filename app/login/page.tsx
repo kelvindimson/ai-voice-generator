@@ -129,7 +129,7 @@ export default function LoginPage() {
 
                <div className="space-y-3">
                  <Button asChild className="w-full py-6 rounded-full" size="lg">
-                   <a href="/dashboard">Go to Dashboard</a>
+                   <a href="/audio">Go to Dashboard</a>
                  </Button>
                  <hr className="w-20 my-4 mx-auto" />
                  <Button
