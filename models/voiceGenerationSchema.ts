@@ -14,14 +14,14 @@ export const voiceSchema = z.enum([
 
 export const voiceGenerationSchema = z.object({
   // Core required fields
-  inputScript: z.string().min(1).max(5000), // The text to be spoken
+  inputScript: z.string().min(1, "Input script is required").max(1000),
   voice: voiceSchema,
   
   // Most common instruction components from LIBRARY
   voiceAffect: z.string().optional(), // "calm and composed", "deep and commanding", "energetic"
-  tone: z.string().optional(), // "sincere", "professional", "friendly", "mysterious"
+  tone: z.string().default("neutral"), // "friendly", "serious", "playful", "dramatic"
   emotion: z.string().optional(), // "empathy", "excitement", "calm reassurance"
-  pacing: z.string().optional(), // "slow and deliberate", "steady", "rapid", "moderate"
+  pacing: z.string().optional().default("steady"), // "slow and deliberate", "steady", "rapid", "moderate"
   
   // Secondary common fields
   pronunciation: z.string().optional(), // Special pronunciation instructions

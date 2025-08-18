@@ -55,4 +55,13 @@ export declare global {
     createdAt: Date;
     updatedAt: Date | null;
   }
+
+  export interface AudioMetadata {
+    inputScript: string;
+    voice: string;
+    promptInstructions: string;
+    timestamp: string;
+    userId: string;
+  }
+
 }
