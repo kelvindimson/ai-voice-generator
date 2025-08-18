@@ -70,7 +70,7 @@ export default function LoginPage() {
                    <Separator />
                  </div>
                  <div className="relative flex justify-center text-sm">
-                   <span className="px-4 bg-background text-muted-foreground">
+                   <span className="px-4 text-muted-foreground bg-card">
                      Continue with
                    </span>
                  </div>
