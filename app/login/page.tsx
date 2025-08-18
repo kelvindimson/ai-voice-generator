@@ -42,7 +42,7 @@ export default function LoginPage() {
 
  if (status === "loading") {
    return (
-     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br ">
        <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
      </div>
    )
@@ -50,7 +50,7 @@ export default function LoginPage() {
 
  return (
    <>
-     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br">
        <Card className="w-full max-w-md shadow-none p-12">
          {!session ? (
            <>
