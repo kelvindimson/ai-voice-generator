@@ -8,7 +8,10 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { DateTime } from "luxon";
 
 // GET single audio file
-export async function GET( req: NextRequest,{ params }: { params: { id: string } }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(
@@ -22,12 +25,15 @@ export async function GET( req: NextRequest,{ params }: { params: { id: string }
   }
 
   try {
+    // Await the params object
+    const { id } = await params;
+    
     const [audioFile] = await dbConnection
       .select()
       .from(audioFiles)
       .where(
         and(
-          eq(audioFiles.id, params.id),
+          eq(audioFiles.id, id),
           eq(audioFiles.userId, session.user.id)
         )
       )
@@ -62,7 +68,7 @@ export async function GET( req: NextRequest,{ params }: { params: { id: string }
 // PATCH - Update audio file (name, category)
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -77,6 +83,8 @@ export async function PATCH(
   }
 
   try {
+    // Await the params object
+    const { id } = await params;
     const body = await req.json();
     const { name, categoryId } = body;
 
@@ -86,7 +94,7 @@ export async function PATCH(
       .from(audioFiles)
       .where(
         and(
-          eq(audioFiles.id, params.id),
+          eq(audioFiles.id, id),
           eq(audioFiles.userId, session.user.id)
         )
       )
@@ -102,7 +110,7 @@ export async function PATCH(
 
     // Update the audio file
     const updateData: AudioFileUpdate = {
-    updatedAt: DateTime.now().toUTC().toJSDate()
+      updatedAt: DateTime.now().toUTC().toJSDate()
     };
 
     if (name !== undefined) updateData.name = name;
@@ -113,7 +121,7 @@ export async function PATCH(
       .set(updateData)
       .where(
         and(
-          eq(audioFiles.id, params.id),
+          eq(audioFiles.id, id),
           eq(audioFiles.userId, session.user.id)
         )
       )
@@ -140,7 +148,7 @@ export async function PATCH(
 // DELETE audio file
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -155,13 +163,16 @@ export async function DELETE(
   }
 
   try {
+    // Await the params object
+    const { id } = await params;
+    
     // Get the audio file first to get the storage key
     const [audioFile] = await dbConnection
       .select()
       .from(audioFiles)
       .where(
         and(
-          eq(audioFiles.id, params.id),
+          eq(audioFiles.id, id),
           eq(audioFiles.userId, session.user.id)
         )
       )
@@ -190,7 +201,7 @@ export async function DELETE(
       .delete(audioFiles)
       .where(
         and(
-          eq(audioFiles.id, params.id),
+          eq(audioFiles.id, id),
           eq(audioFiles.userId, session.user.id)
         )
       );

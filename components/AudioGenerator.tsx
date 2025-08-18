@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -10,10 +10,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, Pause, Download, Save, Volume2 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
+import { Save } from "lucide-react";
 import { toast } from "react-hot-toast";
 import SaveAudioModal from "./SaveAudioModal";
+import AudioPlayer from "@/components/AudioPlayer";
 import { Voices } from "@/models/voiceGenerationSchema";
 
 interface FormData {
@@ -32,9 +32,6 @@ interface FormData {
 
 export default function AudioGenerator() {
   const router = useRouter();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(50);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -128,30 +125,12 @@ export default function AudioGenerator() {
     };
   }, [audioUrl]);
 
-  // Handle volume change
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume / 100;
-    }
-  }, [volume]);
-
   const handleGenerate = () => {
     if (!formData.inputScript.trim()) {
       toast.error("Please enter a script");
       return;
     }
     generateMutation.mutate(formData);
-  };
-
-  const handlePlayPause = () => {
-    if (!audioRef.current || !audioUrl) return;
-
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
-    }
-    setIsPlaying(!isPlaying);
   };
 
   const handleDownload = () => {
@@ -287,55 +266,21 @@ export default function AudioGenerator() {
           <CardContent className="space-y-4">
             {audioUrl ? (
               <>
-                <audio
-                  ref={audioRef}
+                <AudioPlayer 
                   src={audioUrl}
-                  onEnded={() => setIsPlaying(false)}
-                  className="hidden"
+                  title="Generated Audio"
+                  onDownload={handleDownload}
                 />
-                
-                {/* Player Controls */}
-                <div className="flex items-center gap-4">
-                  <Button
-                    onClick={handlePlayPause}
-                    size="icon"
-                    variant="outline"
-                  >
-                    {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-                  </Button>
-                  
-                  <div className="flex-1 flex items-center gap-2">
-                    <Volume2 className="h-4 w-4" />
-                    <Slider
-                      value={[volume]}
-                      onValueChange={([value]) => setVolume(value)}
-                      max={100}
-                      step={1}
-                      className="flex-1"
-                    />
-                    <span className="text-sm w-10">{volume}%</span>
-                  </div>
-                </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    onClick={handleDownload}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Download
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setShowSaveModal(true)}
-                    className="flex-1"
-                  >
-                    <Save className="h-4 w-4 mr-2" />
-                    Save to Library
-                  </Button>
-                </div>
+                {/* Save Button */}
+                <Button
+                  onClick={() => setShowSaveModal(true)}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save to Library
+                </Button>
               </>
             ) : (
               <div className="text-center py-12 text-muted-foreground">

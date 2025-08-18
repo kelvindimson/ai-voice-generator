@@ -5,6 +5,7 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { SessionProvider } from "next-auth/react";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import Navbar from "@/components/Navbar/Navbar";
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <SessionProvider>
           <ReactQueryProvider>
             <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
+                <Navbar />
                 <Toaster position="bottom-right" reverseOrder={false}/>
                 {children}
             </ThemeProvider>

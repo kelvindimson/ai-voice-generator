@@ -19,9 +19,9 @@ export const voiceGenerationSchema = z.object({
   
   // Most common instruction components from LIBRARY
   voiceAffect: z.string().optional(), // "calm and composed", "deep and commanding", "energetic"
-  tone: z.string().default("neutral"), // "friendly", "serious", "playful", "dramatic"
+  tone: z.string(), // "friendly", "serious", "playful", "dramatic"
   emotion: z.string().optional(), // "empathy", "excitement", "calm reassurance"
-  pacing: z.string().optional().default("steady"), // "slow and deliberate", "steady", "rapid", "moderate"
+  pacing: z.string().optional(), // "slow and deliberate", "steady", "rapid", "moderate"
   
   // Secondary common fields
   pronunciation: z.string().optional(), // Special pronunciation instructions
