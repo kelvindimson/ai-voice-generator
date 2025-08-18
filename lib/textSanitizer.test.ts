@@ -1,5 +1,3 @@
-// __tests__/lib/textSanitizer.test.ts
-
 import { describe, it, expect } from '@jest/globals';
 
 import {
