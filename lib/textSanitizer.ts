@@ -1,5 +1,3 @@
-// lib/textSanitizer.ts
-
 /**
  * Sanitizes text input for TTS API consumption
  * Handles special characters, line breaks, and encoding issues
