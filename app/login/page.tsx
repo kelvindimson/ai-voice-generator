@@ -20,6 +20,7 @@ import {
  AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import toast from "react-hot-toast"
+import Link from "next/link"
 
 export default function LoginPage() {
  const { data: session, status } = useSession()
@@ -89,9 +90,9 @@ export default function LoginPage() {
              <CardFooter>
                <p className="text-center text-sm text-muted-foreground w-full">
                  By signing in, you agree to our{" "}
-                 <a href="#" className="text-primary hover:underline">
+                 <Link href="#" className="text-primary hover:underline">
                    Terms
-                 </a>{" "}
+                 </Link>{" "}
                  and{" "}
                  <a href="#" className="text-primary hover:underline">
                    Privacy Policy
