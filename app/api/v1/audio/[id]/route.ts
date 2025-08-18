@@ -8,10 +8,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { DateTime } from "luxon";
 
 // GET single audio file
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function GET( req: NextRequest,{ params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json(

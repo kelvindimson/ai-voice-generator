@@ -31,10 +31,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowUpDown, MoreHorizontal, Plus, Play, Download, Trash2, Eye } from "lucide-react";
 import { formatDate } from "@/lib/dateUtils";
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
+import AudioPlayer from "@/components/AudioPlayer";
 
 interface AudioFile {
   id: string;
@@ -54,6 +71,10 @@ export default function AudioFilesPage() {
   const [loading, setLoading] = useState(true);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [playDialogOpen, setPlayDialogOpen] = useState(false);
+  const [selectedAudioFile, setSelectedAudioFile] = useState<AudioFile | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -85,7 +106,8 @@ export default function AudioFilesPage() {
   }, [session]);
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this audio file?")) return;
+    setDeleteDialogOpen(false);
+    setFileToDelete(null);
 
     try {
       const response = await fetch(`/api/v1/audio/${id}`, {
@@ -100,6 +122,16 @@ export default function AudioFilesPage() {
     } catch (error) {
       toast.error("Failed to delete audio file");
     }
+  };
+
+  const handleDeleteClick = (id: string) => {
+    setFileToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const handlePlayClick = (file: AudioFile) => {
+    setSelectedAudioFile(file);
+    setPlayDialogOpen(true);
   };
 
   const handleDownload = (fileUrl: string, name: string) => {
@@ -157,56 +189,61 @@ export default function AudioFilesPage() {
     },
     {
       accessorKey: "createdAt",
-        header: ({ column }) => {
-            return (
-            <Button
-                variant="ghost"
-                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-                Created
-                <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-            );
-        },
-        cell: ({ row }) => {
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            Created
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => {
         return formatDate(row.getValue("createdAt"));
-        },
+      },
     },
     {
       id: "actions",
+      header: () => (
+        <div className="text-right">Actions</div>
+      ),
       cell: ({ row }) => {
         const file = row.original;
 
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => router.push(`/audio/${file.id}`)}>
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => window.open(file.fileUrl, "_blank")}>
-                <Play className="mr-2 h-4 w-4" />
-                Play
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleDownload(file.fileUrl, file.name)}>
-                <Download className="mr-2 h-4 w-4" />
-                Download
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => handleDelete(file.id)}
-                className="text-red-600"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="text-right">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0 ml-auto">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => router.push(`/audio/${file.id}`)}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePlayClick(file)}>
+                  <Play className="mr-2 h-4 w-4" />
+                  Play
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload(file.fileUrl, file.name)}>
+                  <Download className="mr-2 h-4 w-4" />
+                  Download
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => handleDeleteClick(file.id)}
+                  className="text-red-600"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         );
       },
     },
@@ -263,7 +300,10 @@ export default function AudioFilesPage() {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead 
+                      key={header.id}
+                      className={header.column.id === 'actions' ? 'text-right' : ''}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -284,7 +324,10 @@ export default function AudioFilesPage() {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell 
+                      key={cell.id} 
+                      className={cell.column.id === 'actions' ? 'text-right' : ''}
+                    >
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -319,6 +362,40 @@ export default function AudioFilesPage() {
           Next
         </Button>
       </div>
+
+      {/* Play Audio Dialog */}
+      <Dialog open={playDialogOpen} onOpenChange={setPlayDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>{selectedAudioFile?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedAudioFile && (
+            <AudioPlayer 
+              src={selectedAudioFile.fileUrl}
+              title={selectedAudioFile.name}
+              onDownload={() => handleDownload(selectedAudioFile.fileUrl, selectedAudioFile.name)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this audio file?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the audio file from your library.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setFileToDelete(null)}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => fileToDelete && handleDelete(fileToDelete)}>
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
