@@ -94,9 +94,9 @@ export default function LoginPage() {
                    Terms
                  </Link>{" "}
                  and{" "}
-                 <a href="#" className="text-primary hover:underline">
+                 <Link href="#" className="text-primary hover:underline">
                    Privacy Policy
-                 </a>
+                 </Link>
                </p>
              </CardFooter>
            </>
@@ -130,7 +130,7 @@ export default function LoginPage() {
 
                <div className="space-y-3">
                  <Button asChild className="w-full py-6 rounded-full" size="lg">
-                   <a href="/audio">Go to Dashboard</a>
+                   <Link href="/audio">Go to Dashboard</Link>
                  </Button>
                  <hr className="w-20 my-4 mx-auto" />
                  <Button
