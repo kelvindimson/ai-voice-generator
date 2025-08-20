@@ -1,4 +1,4 @@
-# AI Voice Generator
+# AI Voice Generator by Kelvin Dim
 
 A web application that transforms text into natural-sounding speech using OpenAI's text-to-speech technology. 
 Built with Next.js 15, TypeScript, and modern web technologies.
